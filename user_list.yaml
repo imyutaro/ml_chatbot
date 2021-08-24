@@ -1,8 +1,9 @@
-- AkiraTOSEI
-- PyTorch
-- TacoCohen
-- TensorFlow
-- arxivtimes
-- math_phys
-- thomaskipf
-- ylecun
+user_list:
+  - AkiraTOSEI
+  - PyTorch
+  - TacoCohen
+  - TensorFlow
+  - arxivtimes
+  - math_phys
+  - thomaskipf
+  - ylecun

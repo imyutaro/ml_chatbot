@@ -79,8 +79,8 @@ def load_config(config_path: str) -> AttrDict:
         return AttrDict(yaml.load(fi_, Loader=yaml.SafeLoader))
 
 def main():
-    user_list = load_config("./user_list.yaml")
-    initialize([str(i) for i in user_list])
+    config = load_config("./user_list.yaml")
+    initialize([str(i) for i in config.user_list])
 
 if __name__ == "__main__":
     main()
