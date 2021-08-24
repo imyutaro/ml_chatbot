@@ -1,9 +1,12 @@
 user_list:
-  - AkiraTOSEI
+  - ISID_AI_team
+  - JuliaLanguage
   - PyTorch
   - TacoCohen
   - TensorFlow
   - arxivtimes
+  - hillbig
   - math_phys
   - thomaskipf
   - ylecun
+  - AkiraTOSEI

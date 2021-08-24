@@ -1,6 +1,7 @@
 from datetime import timedelta
 import json
 import os
+import requests
 
 from attrdict import AttrDict
 import tweepy
@@ -33,14 +34,14 @@ def initialize(user_list):
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth)
-    startStream(api.auth, user_list)
+    startStream(api.auth, [str(i) for i in list(user_list)])
 
 def startStream(auth, user_list):
     myStreamListener = MyStreamListener()
-    myStream = tweepy.Stream(auth = auth, listener=myStreamListener)
+    myStream = tweepy.Stream(auth=auth, listener=myStreamListener)
     # myStream.userstream() #タイムラインを表示
     myStream.filter(follow=user_list)
-    # myStream.filter(track=["#cats"]) #検索がしたい場合
+    # myStream.filter(track=["#パラリンピック"]) #検索がしたい場合
 
 def format_status(status):
     channel = '#curation'
@@ -52,7 +53,6 @@ def format_status(status):
         "channel": channel,
         "username": username,
         "icon_url": status.user.profile_image_url,
-        "icon_emoji": ":onebrainpad:",
         "text": text
     }
     json_dat = json.dumps(json_dat)
@@ -80,7 +80,7 @@ def load_config(config_path: str) -> AttrDict:
 
 def main():
     config = load_config("./user_list.yaml")
-    initialize([str(i) for i in config.user_list])
+    initialize(config.user_list)
 
 if __name__ == "__main__":
     main()
