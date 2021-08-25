@@ -67,7 +67,7 @@ def format_status(status):
         "icon_url": status.user.profile_image_url,
         "text": text
     }
-    json_dat = json.dumps(json_dat, ensure_ascii=False)
+    json_dat = json.dumps(json_dat)
     return json_dat
 
 def post_to_slack(json_dat):
