@@ -63,8 +63,13 @@ def startStream(auth, user_list, print_test=False):
 def format_status(status):
     channel = '#curation'
     status.created_at += timedelta(hours=9) # 日本時間に
-    tweet_url = status.entities["urls"][1]["url"]
-    text = f"【{username} さん】\n{text}\ntweet URL: {tweet_url}"
+    username = str(status.user.name) + '@' + str(status.user.screen_name) + ' (from twitter)'
+    if "RT @" in status.text[0:4]:
+        tweet_url = status._json["retweeted_status"]["entities"]["urls"][0]["url"]
+        text = f"【{username} さん】 RT URL: {tweet_url}"
+    else:
+        tweet_url = status.entities["urls"][0]["url"]
+        text = f"【{username} さん】tweet URL: {tweet_url}"
     attachments = make_attachments(status)
 
     json_dat = {
@@ -76,13 +81,13 @@ def format_status(status):
     return json_dat
 
 def make_attachments(status):
+    # TODO: RTの場合mediaは見れていない(?)
     if 'media' in status.entities:
         output = [
             {
                 "blocks": [
                     make_context(status),
-                    make_section(status),
-                    make_image(status)
+                    make_section(status)
                 ]
             }
         ]
@@ -105,31 +110,55 @@ def make_attachments(status):
             }
         ]
 
-
 def make_context(status):
-    return {
-        "type": "context",
-        "elements": [
-            {
-                "type": "image",
-                "image_url": status.user.profile_image_url,
-                "alt_text": status.user.name
-            },
-            {
-                "type": "mrkdwn",
-                "text": f"{status.user.name} tweet"
-            }
-        ]
-    }
+    if "RT @" in status.text[0:4]:
+        return {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "image",
+                    "image_url": status._json["retweeted_status"]["user"]["profile_image_url"],
+                    "alt_text": status._json["retweeted_status"]["user"]["name"]
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": f"{status._json['retweeted_status']['user']['name']} tweet"
+                }
+            ]
+        }
+    else:
+        return {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "image",
+                    "image_url": status.user.profile_image_url,
+                    "alt_text": status.user.name
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": f"{status.user.name} tweet"
+                }
+            ]
+        }
 
 def make_section(status):
-    return {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": status.extended_tweet["full_text"]
+    if "RT @" in status.text[0:4]:
+        return {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": status._json["retweeted_status"]["extended_tweet"]["full_text"]
+            }
         }
-    }
+    else:
+        return {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": status.extended_tweet["full_text"]
+            }
+        }
 
 def post_to_slack(json_dat):
     url = SLACK_WEBHOOK_URL

@@ -1,7 +1,10 @@
 user_list:
   - A_I_News
   - AkiraTOSEI
+  - DeepMind
+  - GoogleAI
   - ISID_AI_team
+  - ImAI_Eruel
   - JuliaLanguage
   - PyTorch
   - SupervisedAi
@@ -9,8 +12,13 @@ user_list:
   - TensorFlow
   - ai_scholar
   - arxivtimes
+  - facebookai
+  - geoffreyhinton
   - hillbig
+  - icoxfog417
   - ledgeai
   - math_phys
+  - sylvan5
   - thomaskipf
+  - wellingmax
   - ylecun
