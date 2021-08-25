@@ -15,29 +15,41 @@ SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
 
 # tweepy.StreamListener をオーバーライド
 class MyStreamListener(tweepy.StreamListener):
+    def __init__(self, print_test=False):
+        self._print_test = print_test
+        super().__init__()
+
     def on_status(self, status):
         if self.is_invalid_tweet(status):
-            post_to_slack(format_status(status))
+            if not self._print_test:
+                post_to_slack(format_status(status))
+            else:
+                import ipdb; ipdb.set_trace()
+                print(format_status(status))
 
     def is_invalid_tweet(self, status):
         """ツイートのフィルタリング"""
         if isinstance(status.in_reply_to_status_id, int):
             # リプライなら False
             return False
-        return True
+        elif "RT @" in status.text[0:4]:
+            # RT なら False
+            return False
+        else:
+            return True
 
     def on_error(self, status_code):
         if status_code == 420:
             return False
 
-def initialize(user_list):
+def initialize(user_list, print_test=False):
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth)
-    startStream(api.auth, [str(i) for i in list(user_list)])
+    startStream(api.auth, [str(api.get_user(str(i)).id) for i in list(user_list)], print_test)
 
-def startStream(auth, user_list):
-    myStreamListener = MyStreamListener()
+def startStream(auth, user_list, print_test=False):
+    myStreamListener = MyStreamListener(print_test)
     myStream = tweepy.Stream(auth=auth, listener=myStreamListener)
     # myStream.userstream() #タイムラインを表示
     myStream.filter(follow=user_list)
@@ -55,7 +67,7 @@ def format_status(status):
         "icon_url": status.user.profile_image_url,
         "text": text
     }
-    json_dat = json.dumps(json_dat)
+    json_dat = json.dumps(json_dat, ensure_ascii=False)
     return json_dat
 
 def post_to_slack(json_dat):
@@ -80,7 +92,7 @@ def load_config(config_path: str) -> AttrDict:
 
 def main():
     config = load_config("./user_list.yaml")
-    initialize(config.user_list)
+    initialize(config.user_list, print_test=False)
 
 if __name__ == "__main__":
     main()

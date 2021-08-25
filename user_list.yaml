@@ -1,12 +1,16 @@
 user_list:
+  - A_I_News
+  - AkiraTOSEI
   - ISID_AI_team
   - JuliaLanguage
   - PyTorch
+  - SupervisedAi
   - TacoCohen
   - TensorFlow
+  - ai_scholar
   - arxivtimes
   - hillbig
+  - ledgeai
   - math_phys
   - thomaskipf
   - ylecun
-  - AkiraTOSEI
