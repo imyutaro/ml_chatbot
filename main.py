@@ -15,7 +15,8 @@ SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
 
 # tweepy.StreamListener をオーバーライド
 class MyStreamListener(tweepy.StreamListener):
-    def __init__(self, print_test=False):
+    def __init__(self,user_list, print_test=False):
+        self._user_list = user_list
         self._print_test = print_test
         super().__init__()
 
@@ -33,8 +34,12 @@ class MyStreamListener(tweepy.StreamListener):
             # リプライなら False
             return False
         elif "RT @" in status.text[0:4]:
-            # RT なら False
-            return False
+            if status.user.id_str in set(self._user_list):
+                # user_listのRTならTrue
+                return True
+            else:
+                # RT なら False
+                return False
         else:
             return True
 
@@ -49,7 +54,7 @@ def initialize(user_list, print_test=False):
     startStream(api.auth, [str(api.get_user(str(i)).id) for i in list(user_list)], print_test)
 
 def startStream(auth, user_list, print_test=False):
-    myStreamListener = MyStreamListener(print_test)
+    myStreamListener = MyStreamListener(user_list, print_test)
     myStream = tweepy.Stream(auth=auth, listener=myStreamListener)
     # myStream.userstream() #タイムラインを表示
     myStream.filter(follow=user_list)
@@ -57,18 +62,74 @@ def startStream(auth, user_list, print_test=False):
 
 def format_status(status):
     channel = '#curation'
-    text = status.text
     status.created_at += timedelta(hours=9) # 日本時間に
-    username = str(status.user.name) + '@' + str(status.user.screen_name) + ' (from twitter)'
+    tweet_url = status.entities["urls"][1]["url"]
+    text = f"【{username} さん】\n{text}\ntweet URL: {tweet_url}"
+    attachments = make_attachments(status)
 
     json_dat = {
         "channel": channel,
-        "username": username,
-        "icon_url": status.user.profile_image_url,
-        "text": text
+        "text": text,
+        "attachments": attachments
     }
     json_dat = json.dumps(json_dat)
     return json_dat
+
+def make_attachments(status):
+    if 'media' in status.entities:
+        output = [
+            {
+                "blocks": [
+                    make_context(status),
+                    make_section(status),
+                    make_image(status)
+                ]
+            }
+        ]
+        images_blocks = [
+            {
+                "type": "image",
+                "image_url": media["media_url"],
+                "alt_text": "inspiration"
+            } for media in status.extended_entities['media']
+        ]
+        output[0]["blocks"] = output[0]["blocks"] + images_blocks
+        return output
+    else:
+        return [
+            {
+                "blocks": [
+                    make_context(status),
+                    make_section(status)
+                ]
+            }
+        ]
+
+
+def make_context(status):
+    return {
+        "type": "context",
+        "elements": [
+            {
+                "type": "image",
+                "image_url": status.user.profile_image_url,
+                "alt_text": status.user.name
+            },
+            {
+                "type": "mrkdwn",
+                "text": f"{status.user.name} tweet"
+            }
+        ]
+    }
+
+def make_section(status):
+    return {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": status.extended_tweet["full_text"]
+        }
+    }
 
 def post_to_slack(json_dat):
     url = SLACK_WEBHOOK_URL
