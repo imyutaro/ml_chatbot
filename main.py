@@ -25,7 +25,10 @@ class MyStreamListener(tweepy.StreamListener):
             if not self._print_test:
                 post_to_slack(format_status(status))
             else:
-                import ipdb; ipdb.set_trace()
+                try:
+                    format_status(status)
+                except Exception:
+                    import ipdb; ipdb.set_trace()
                 print(format_status(status))
 
     def is_invalid_tweet(self, status):
@@ -147,22 +150,23 @@ def make_context(status):
         }
 
 def make_section(status):
-    if "RT @" in status.text[0:4]:
-        return {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": status._json["retweeted_status"]["extended_tweet"]["full_text"]
-            }
-        }
+    if hasattr(status, "retweeted_status"):  # Check if Retweet
+        try:
+            text = status.retweeted_status.extended_tweet["full_text"]
+        except AttributeError:
+            text = status.retweeted_status.text
     else:
-        return {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": status.extended_tweet["full_text"]
-            }
+        try:
+            text = status.extended_tweet["full_text"]
+        except AttributeError:
+            text = status.text
+    return {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": text
         }
+    }
 
 def post_to_slack(json_dat):
     url = SLACK_WEBHOOK_URL
