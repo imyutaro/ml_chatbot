@@ -106,7 +106,7 @@ def make_attachments(status):
         ]
         output[0]["blocks"] = output[0]["blocks"] + images_blocks
         return output
-    except AttributeError:
+    except:
         return [
             {
                 "blocks": [
