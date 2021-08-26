@@ -1,12 +1,12 @@
 user_list:
-  - A_I_News
   - AkiraTOSEI
   - DeepMind
   - GoogleAI
   - ISID_AI_team
-  - ImAI_Eruel
   - JuliaLanguage
+  - Nospare_article
   - PyTorch
+  - StatMLPapers
   - SupervisedAi
   - TacoCohen
   - TensorFlow
@@ -15,9 +15,8 @@ user_list:
   - facebookai
   - geoffreyhinton
   - hillbig
-  - icoxfog417
-  - ledgeai
   - math_phys
+  - stateofai_ja
   - sylvan5
   - thomaskipf
   - wellingmax
