@@ -39,7 +39,7 @@ class MyStreamListener(tweepy.StreamListener):
         elif "@" in status.text[0]:
             # リプライなら False
             return False
-        elif "RT @" in status.text[0:4]:
+        elif hasattr(status, "retweeted_status"):  # Check if Retweet
             if status.user.id_str in set(self._user_list):
                 # user_listのRTならTrue
                 return True
@@ -70,12 +70,12 @@ def format_status(status):
     channel = '#curation'
     status.created_at += timedelta(hours=9) # 日本時間に
     username = str(status.user.name) + '@' + str(status.user.screen_name) + ' (from twitter)'
-    if "RT @" in status.text[0:4]:
-        # tweet_url = status._json["retweeted_status"]["entities"]["urls"][0]["url"]
-        text = f"【{username} さん】 RT"
+    base_url = "https://twitter.com/twitter/statuses/"
+    tweet_url = base_url + status.id_str
+    if hasattr(status, "retweeted_status"):  # Check if Retweet
+        text = f"【{username} さん】 RT URL : {tweet_url}"
     else:
-        # tweet_url = status.entities["urls"][0]["url"]
-        text = f"【{username} さん】tweet"
+        text = f"【{username} さん】tweet URL : {tweet_url}"
     attachments = make_attachments(status)
 
     json_dat = {
@@ -118,7 +118,7 @@ def make_attachments(status):
         ]
 
 def make_context(status):
-    if "RT @" in status.text[0:4]:
+    if hasattr(status, "retweeted_status"):  # Check if Retweet
         return {
             "type": "context",
             "elements": [
