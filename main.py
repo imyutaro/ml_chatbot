@@ -87,9 +87,8 @@ def format_status(status):
     return json_dat
 
 def make_attachments(status):
-    # TODO: RTの場合mediaは見れていない(?)
-    # TODO: status.entitiesにmediaはなくなってしまっている?
-    if 'media' in status.entities:
+    try:
+        media = status.extended_tweet["entities"]["media"]
         output = [
             {
                 "blocks": [
@@ -101,13 +100,13 @@ def make_attachments(status):
         images_blocks = [
             {
                 "type": "image",
-                "image_url": media["media_url"],
+                "image_url": m["media_url"],
                 "alt_text": "inspiration"
-            } for media in status.extended_entities['media']
+            } for m in media
         ]
         output[0]["blocks"] = output[0]["blocks"] + images_blocks
         return output
-    else:
+    except AttributeError:
         return [
             {
                 "blocks": [
@@ -124,12 +123,12 @@ def make_context(status):
             "elements": [
                 {
                     "type": "image",
-                    "image_url": status._json["retweeted_status"]["user"]["profile_image_url"],
-                    "alt_text": status._json["retweeted_status"]["user"]["name"]
+                    "image_url": status.retweeted_status.user.profile_image_url,
+                    "alt_text": status.retweeted_status.user.name
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"{status._json['retweeted_status']['user']['name']} tweet"
+                    "text": f"{status.retweeted_status.user.name} tweet"
                 }
             ]
         }
@@ -188,9 +187,9 @@ def load_config(config_path: str) -> AttrDict:
     with open(config_path, 'r', encoding='utf-8') as fi_:
         return AttrDict(yaml.load(fi_, Loader=yaml.SafeLoader))
 
-def main():
+def main(print_test=False):
     config = load_config("./user_list.yaml")
-    initialize(config.user_list, print_test=False)
+    initialize(config.user_list, print_test=print_test)
 
 if __name__ == "__main__":
     main()
