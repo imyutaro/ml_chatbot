@@ -88,22 +88,40 @@ def format_status(status):
 
 def make_attachments(status):
     try:
-        media = status.extended_tweet["entities"]["media"]
-        output = [
-            {
-                "blocks": [
-                    make_context(status),
-                    make_section(status)
-                ]
-            }
-        ]
-        images_blocks = [
-            {
-                "type": "image",
-                "image_url": m["media_url"],
-                "alt_text": "inspiration"
-            } for m in media
-        ]
+        if hasattr(status, "retweeted_status"):  # Check if Retweet
+            media = status.retweeted_status.extended_tweet["entities"]["media"]
+            output = [
+                {
+                    "blocks": [
+                        make_context(status),
+                        make_section(status)
+                    ]
+                }
+            ]
+            images_blocks = [
+                {
+                    "type": "image",
+                    "image_url": m["media_url"],
+                    "alt_text": "inspiration"
+                } for m in media
+            ]
+        else:
+            media = status.extended_tweet["entities"]["media"]
+            output = [
+                {
+                    "blocks": [
+                        make_context(status),
+                        make_section(status)
+                    ]
+                }
+            ]
+            images_blocks = [
+                {
+                    "type": "image",
+                    "image_url": m["media_url"],
+                    "alt_text": "inspiration"
+                } for m in media
+            ]
         output[0]["blocks"] = output[0]["blocks"] + images_blocks
         return output
     except:
