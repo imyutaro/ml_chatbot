@@ -4,6 +4,7 @@ import os
 import requests
 
 from attrdict import AttrDict
+from rocketchat_API.rocketchat import RocketChat
 import tweepy
 import yaml
 
