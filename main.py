@@ -7,10 +7,10 @@ from attrdict import AttrDict
 import tweepy
 import yaml
 
-consumer_key = os.environ["CONSUMER_KEY"]
-consumer_secret = os.environ["CONSUMER_SECRET"]
-access_token = os.environ["ACCESS_TOKEN_KEY"]
-access_token_secret = os.environ["ACCESS_TOKEN_SECRET"]
+TWITTER_CONSUMER_KEY = os.environ["CONSUMER_KEY"]
+TWITTER_CONSUMER_SECRET = os.environ["CONSUMER_SECRET"]
+TWITTER_ACCESS_TOKEN = os.environ["ACCESS_TOKEN_KEY"]
+TWITTER_ACCESS_TOKEN_SECRET = os.environ["ACCESS_TOKEN_SECRET"]
 SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
 
 # tweepy.StreamListener をオーバーライド
@@ -54,8 +54,8 @@ class MyStreamListener(tweepy.StreamListener):
             return False
 
 def initialize(user_list, print_test=False):
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
+    auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
+    auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
     startStream(api.auth, [str(api.get_user(str(i)).id) for i in list(user_list)], print_test)
 
