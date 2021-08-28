@@ -254,7 +254,7 @@ def post_to_rocketchat(post_block):
         ROCKETCHAT_ACCOUNT_NAME,
         ROCKETCHAT_PASSWORD,
         server_url=ROCKETCHAT_SERVER_URL).chat_post_message(
-            post_block
+            **post_block
         )
 
 def load_config(config_path: str) -> AttrDict:
