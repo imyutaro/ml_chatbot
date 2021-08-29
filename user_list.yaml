@@ -25,7 +25,6 @@ apps:
         - ZOZOIncPR
         - ai_scholar
         - arxivtimes
-        - arxivtimes
         - facebookai
         - geoffreyhinton
         - hillbig
@@ -52,7 +51,6 @@ apps:
         - TacoCohen
         - TensorFlow
         - ai_scholar
-        - arxivtimes
         - arxivtimes
         - facebookai
         - geoffreyhinton

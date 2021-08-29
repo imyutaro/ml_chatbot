@@ -35,7 +35,7 @@ class MyStreamListener(tweepy.StreamListener):
                             status, chat_format="slack"
                         )
                     )
-            if app["app"]["name"] == "rochetchat" and not self._print_test and app["app"]["is_post"]:
+            if app["app"]["name"] == "rocketchat" and not self._print_test and app["app"]["is_post"]:
                 if self.is_invalid_tweet(status, app["app"]["user_list"]):
                     post_to_rocketchat(
                         format_status(
@@ -65,7 +65,11 @@ class MyStreamListener(tweepy.StreamListener):
                 # RT なら False
                 return False
         else:
-            return True
+            if status.user.id_str in set(user_list):
+                # user_listのtweetならTrue
+                return True
+            else:
+                return False
 
     def on_error(self, status_code):
         if status_code == 420:
