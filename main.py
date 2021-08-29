@@ -21,29 +21,35 @@ ROCHETCHAT_CHANNEL = "curation_bot"
 
 # tweepy.StreamListener をオーバーライド
 class MyStreamListener(tweepy.StreamListener):
-    def __init__(self,user_list, print_test=False,
-                 is_slack_post=True, is_rocketchat_post=True):
-        self._user_list = user_list
-        self._print_test = print_test
-        self._is_slack_post = is_slack_post
-        self._is_rocketchat_post = is_rocketchat_post
+    def __init__(self, print_test=False, **kwargs):
         super().__init__()
+        self._print_test = print_test
+        self._apps = list(kwargs["apps"])
 
     def on_status(self, status):
-        if self.is_invalid_tweet(status):
-            if not self._print_test:
-                if self._is_slack_post:
-                    post_to_slack(format_status(status, chat_format="slack"))
-                if self._is_rocketchat_post:
-                    post_to_rocketchat(format_status(status, chat_format="rocketchat"))
-            else:
-                try:
-                    format_status(status)
-                except Exception:
-                    import ipdb; ipdb.set_trace()
-                print(format_status(status))
+        for app in self._apps:
+            if app["app"]["name"] == "slack" and not self._print_test and app["app"]["is_post"]:
+                if self.is_invalid_tweet(status, app["app"]["user_list"]):
+                    post_to_slack(
+                        format_status(
+                            status, chat_format="slack"
+                        )
+                    )
+            if app["app"]["name"] == "rochetchat" and not self._print_test and app["app"]["is_post"]:
+                if self.is_invalid_tweet(status, app["app"]["user_list"]):
+                    post_to_rocketchat(
+                        format_status(
+                            status, chat_format="rocketchat"
+                        )
+                    )
+        if self._print_test:
+            try:
+                format_status(status)
+            except Exception:
+                import ipdb; ipdb.set_trace()
+            print(format_status(status))
 
-    def is_invalid_tweet(self, status):
+    def is_invalid_tweet(self, status, user_list):
         """ツイートのフィルタリング"""
         if isinstance(status.in_reply_to_status_id, int):
             # リプライなら False
@@ -52,7 +58,7 @@ class MyStreamListener(tweepy.StreamListener):
             # リプライなら False
             return False
         elif hasattr(status, "retweeted_status"):  # Check if Retweet
-            if status.user.id_str in set(self._user_list):
+            if status.user.id_str in set(user_list):
                 # user_listのRTならTrue
                 return True
             else:
@@ -65,23 +71,28 @@ class MyStreamListener(tweepy.StreamListener):
         if status_code == 420:
             return False
 
-def initialize(user_list, print_test=False,
-               is_slack_post=True, is_rocketchat_post=True):
+def initialize(print_test=False, **kwargs):
     auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
     auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
-    startStream(api.auth, [str(api.get_user(str(i)).id) for i in list(user_list)], print_test,
-                is_slack_post=is_slack_post, is_rocketchat_post=is_rocketchat_post)
 
-def startStream(auth, user_list, print_test=False,
-                is_slack_post=True, is_rocketchat_post=True):
-    myStreamListener = MyStreamListener(user_list, print_test,
-                                        is_slack_post=is_slack_post,
-                                        is_rocketchat_post=is_rocketchat_post)
+    kwargs["apps"] = [i for i in kwargs["apps"] if i["app"]["is_post"]]
+    for num, i in enumerate(kwargs["apps"]):
+        kwargs["apps"][num]["app"]["user_list"] = [
+            str(api.get_user(ul).id) for ul in kwargs["apps"][num]["app"]["user_list"]
+        ]
+    startStream(api.auth, print_test=print_test, **kwargs)
+
+def startStream(auth, print_test=False, **kwargs):
+    myStreamListener = MyStreamListener(print_test=print_test, **kwargs)
     myStream = tweepy.Stream(auth=auth, listener=myStreamListener)
     # myStream.userstream() #タイムラインを表示
     # myStream.filter(track=["#パラリンピック"]) #検索がしたい場合
-    myStream.filter(follow=user_list)
+    # 必要なユニークユーザーに集約
+    _user_list = list(set(
+        u for i in kwargs["apps"] if i["app"]["is_post"] for u in i["app"]["user_list"]
+    ))
+    myStream.filter(follow=_user_list)
 
 def format_status(status, chat_format="slack"):
     if chat_format == "slack":
@@ -275,10 +286,9 @@ def load_config(config_path: str) -> AttrDict:
     with open(config_path, 'r', encoding='utf-8') as fi_:
         return AttrDict(yaml.load(fi_, Loader=yaml.SafeLoader))
 
-def main(print_test=False, is_slack_post=True, is_rocketchat_post=True):
+def main():
     config = load_config("./user_list.yaml")
-    initialize(config.user_list, print_test=print_test,
-               is_slack_post=is_slack_post, is_rocketchat_post=is_rocketchat_post)
+    initialize(**config)
 
 if __name__ == "__main__":
     main()
