@@ -17,7 +17,7 @@ SLACK_CHANNEL = "#curation"
 ROCKETCHAT_ACCOUNT_NAME = os.environ["ROCKETCHAT_USER"]
 ROCKETCHAT_PASSWORD = os.environ["ROCKETCHAT_PASSWORD"]
 ROCKETCHAT_SERVER_URL = os.environ["ROCKETCHAT_SERVER_URL"]
-ROCHETCHAT_CHANNEL = "curation_bot_test"
+ROCHETCHAT_CHANNEL = "curation_bot"
 
 # tweepy.StreamListener をオーバーライド
 class MyStreamListener(tweepy.StreamListener):
@@ -80,8 +80,8 @@ def startStream(auth, user_list, print_test=False,
                                         is_rocketchat_post=is_rocketchat_post)
     myStream = tweepy.Stream(auth=auth, listener=myStreamListener)
     # myStream.userstream() #タイムラインを表示
-    myStream.filter(follow=user_list)
     # myStream.filter(track=["#パラリンピック"]) #検索がしたい場合
+    myStream.filter(follow=user_list)
 
 def format_status(status, chat_format="slack"):
     if chat_format == "slack":
@@ -115,6 +115,7 @@ def make_attachments_rocketchat(status):
         except AttributeError:
             text = status.retweeted_status.text
         try:
+            # rocketchatは1つずつしか画像を載せられない
             media = status.retweeted_status.extended_tweet["entities"]["media"][0]
         except:
             media = None
