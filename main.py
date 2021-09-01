@@ -1,10 +1,14 @@
+from datetime import date
+from datetime import datetime
 from datetime import timedelta
+from time import sleep
 import json
 import os
 import requests
 
 from attrdict import AttrDict
 from rocketchat_API.rocketchat import RocketChat
+import schedule
 import tweepy
 import yaml
 
@@ -29,14 +33,14 @@ class MyStreamListener(tweepy.StreamListener):
     def on_status(self, status):
         for app in self._apps:
             if app["app"]["name"] == "slack" and not self._print_test and app["app"]["is_post"]:
-                if self.is_invalid_tweet(status, app["app"]["user_list"]):
+                if self.is_valid_tweet(status, app["app"]["user_list"]):
                     post_to_slack(
                         format_status(
                             status, chat_format="slack"
                         )
                     )
             if app["app"]["name"] == "rocketchat" and not self._print_test and app["app"]["is_post"]:
-                if self.is_invalid_tweet(status, app["app"]["user_list"]):
+                if self.is_valid_tweet(status, app["app"]["user_list"]):
                     post_to_rocketchat(
                         format_status(
                             status, chat_format="rocketchat"
@@ -49,7 +53,7 @@ class MyStreamListener(tweepy.StreamListener):
                 import ipdb; ipdb.set_trace()
             print(format_status(status))
 
-    def is_invalid_tweet(self, status, user_list):
+    def is_valid_tweet(self, status, user_list):
         """ツイートのフィルタリング"""
         if isinstance(status.in_reply_to_status_id, int):
             # リプライなら False
@@ -73,6 +77,8 @@ class MyStreamListener(tweepy.StreamListener):
 
     def on_error(self, status_code):
         if status_code == 420:
+            # twitter apiの接続上限に達した場合のstatus_codeが420
+            # 再接続しようとすると指数関数的に制限時間が増加するため、Falseを返しstreamingを終了する
             return False
 
 def initialize(print_test=False, **kwargs):
@@ -96,7 +102,7 @@ def startStream(auth, print_test=False, **kwargs):
     _user_list = list(set(
         u for i in kwargs["apps"] if i["app"]["is_post"] for u in i["app"]["user_list"]
     ))
-    myStream.filter(follow=_user_list)
+    myStream.filter(follow=_user_list, is_async=True)
 
 def format_status(status, chat_format="slack"):
     if chat_format == "slack":
@@ -131,7 +137,7 @@ def make_attachments_rocketchat(status):
             text = status.retweeted_status.text
         try:
             # rocketchatは1つずつしか画像を載せられない
-            media = status.retweeted_status.extended_tweet["entities"]["media"][0]
+            media = status.retweeted_status.extended_tweet["entities"]["media"][0]["media_url"]
         except:
             media = None
         attachments = [{
@@ -148,7 +154,7 @@ def make_attachments_rocketchat(status):
         except AttributeError:
             text = status.text
         try:
-            media = status.extended_tweet["entities"]["media"][0]
+            media = status.extended_tweet["entities"]["media"][0]["media_url"]
         except:
             media = None
         attachments = [{
@@ -267,12 +273,50 @@ def post_to_slack(post_block):
 
 def post_to_rocketchat(post_block):
     # 私はaliasが使えない(権限の問題?)
-    RocketChat(
+    rocket = RocketChat(
         ROCKETCHAT_ACCOUNT_NAME,
         ROCKETCHAT_PASSWORD,
-        server_url=ROCKETCHAT_SERVER_URL).chat_post_message(
-            **post_block
-        )
+        server_url=ROCKETCHAT_SERVER_URL)
+    rocket.chat_post_message(
+        **post_block
+    )
+
+def post_rocketchat_reactions():
+    # 前日反応のあった投稿をピックアップして再投稿
+    post_base_url = f"{ROCKETCHAT_SERVER_URL}channel/{ROCHETCHAT_CHANNEL}?msg="
+    now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S")
+
+    rocket = RocketChat(
+        ROCKETCHAT_ACCOUNT_NAME,
+        ROCKETCHAT_PASSWORD,
+        server_url=ROCKETCHAT_SERVER_URL)
+    match_post = []
+    # スタンプ等のリアクションがあった投稿
+    match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
+                                                      count=200,
+                                                      oldest=yesterday, latest=now).json()["messages"]
+                   if i.get("reactions")]
+    # 「attachmentsを使うのは自動投稿くらいだろう」という仮定からのフィルタリングした投稿
+    match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
+                                                      count=200,
+                                                      oldest=yesterday, latest=now).json()["messages"]
+                   if i.get("attachments") is None and i.get("t") is None]
+    # ユニークな投稿のidを取得
+    match_post_id = list(set([i.get(["_id"]) for i in match_post]))
+    if match_post:
+        text = "反応のあった投稿一覧\n"
+        text += "\n".join([f"{post_base_url}{i}" for i in match_post_id])
+    else:
+        text = "反応があった投稿はありませんでした"
+    channel = ROCHETCHAT_CHANNEL
+    post_block = {
+        "channel": channel,
+        "text": text,
+    }
+    rocket.chat_post_message(
+        **post_block
+    )
 
 def load_config(config_path: str) -> AttrDict:
     """config(yaml)ファイルを読み込む
@@ -293,6 +337,10 @@ def load_config(config_path: str) -> AttrDict:
 def main():
     config = load_config("./user_list.yaml")
     initialize(**config)
+    schedule.every().day.at("16:00").do(post_rocketchat_reactions)
+    while True:
+        schedule.run_pending()
+        sleep(1)
 
 if __name__ == "__main__":
     main()

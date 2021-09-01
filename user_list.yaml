@@ -1,4 +1,4 @@
-print_test: False
+print_test: True
 
 apps:
   - app:
@@ -14,7 +14,7 @@ apps:
         - GoogleAI
         - ISID_AI_team
         - JuliaLanguage
-        - Nospare_article
+        - Nospare_Inc
         - PreferredNetJP
         - PyTorch
         - StatMLPapers
@@ -44,7 +44,7 @@ apps:
         - GoogleAI
         - ISID_AI_team
         - JuliaLanguage
-        - Nospare_article
+        - Nospare_Inc
         - PyTorch
         - StatMLPapers
         - SupervisedAi

@@ -2,4 +2,5 @@ attrdict==2.0.1
 PyYAML==5.4.1
 requests==2.26.0
 rocketchat-API==1.16.0
+schedule==1.1.0
 tweepy==3.10.0
