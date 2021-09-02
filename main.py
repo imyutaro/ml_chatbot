@@ -19,7 +19,7 @@ SLACK_CHANNEL = "#curation"
 ROCKETCHAT_ACCOUNT_NAME = os.environ["ROCKETCHAT_USER"]
 ROCKETCHAT_PASSWORD = os.environ["ROCKETCHAT_PASSWORD"]
 ROCKETCHAT_SERVER_URL = os.environ["ROCKETCHAT_SERVER_URL"]
-ROCHETCHAT_CHANNEL = "curation_bot"
+ROCKETCHAT_CHANNEL = "curation_bot"
 
 # tweepy.StreamListener をオーバーライド
 class MyStreamListener(tweepy.StreamListener):
@@ -106,7 +106,7 @@ def format_status(status, chat_format="slack"):
     if chat_format == "slack":
         channel = SLACK_CHANNEL
     elif chat_format == "rocketchat":
-        channel = ROCHETCHAT_CHANNEL
+        channel = ROCKETCHAT_CHANNEL
     status.created_at += timedelta(hours=9) # 日本時間に
     username = str(status.user.name) + '@' + str(status.user.screen_name) + ' (from twitter)'
     base_url = "https://twitter.com/twitter/statuses/"
@@ -135,7 +135,7 @@ def make_attachments_rocketchat(status):
             text = status.retweeted_status.text
         try:
             # rocketchatは1つずつしか画像を載せられない
-            media = status.retweeted_status.extended_tweet["entities"]["media"][0]["media_url"]
+            media = status.retweeted_status.extended_tweet["entities"]["media"][0]["media_url"].replace("http:", "https:")
         except:
             media = None
         attachments = [{
@@ -152,7 +152,7 @@ def make_attachments_rocketchat(status):
         except AttributeError:
             text = status.text
         try:
-            media = status.extended_tweet["entities"]["media"][0]["media_url"]
+            media = status.extended_tweet["entities"]["media"][0]["media_url"].replace("http:", "https:")
         except:
             media = None
         attachments = [{

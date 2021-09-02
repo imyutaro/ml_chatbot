@@ -17,6 +17,7 @@ apps:
         - Nospare_Inc
         - PreferredNetJP
         - PyTorch
+        - SansanDSOC
         - StatMLPapers
         - SupervisedAi
         - TDataScience
@@ -46,6 +47,7 @@ apps:
         - JuliaLanguage
         - Nospare_Inc
         - PyTorch
+        - SansanDSOC
         - StatMLPapers
         - SupervisedAi
         - TacoCohen
