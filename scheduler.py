@@ -33,7 +33,7 @@ def post_rocketchat_reactions():
                                                       oldest=yesterday, latest=now).json()["messages"]
                    if i.get("attachments") is None and i.get("t") is None]
     # ユニークな投稿のidを取得
-    match_post_id = list(set([i.get(["_id"]) for i in match_post]))
+    match_post_id = list(set([i["_id"] for i in match_post]))
     if match_post:
         text = "反応のあった投稿一覧\n"
         text += "\n".join([f"{post_base_url}{i}" for i in match_post_id])
