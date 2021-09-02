@@ -1,14 +1,12 @@
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
-from time import sleep
 import json
 import os
 import requests
 
 from attrdict import AttrDict
 from rocketchat_API.rocketchat import RocketChat
-import schedule
 import tweepy
 import yaml
 
@@ -102,7 +100,7 @@ def startStream(auth, print_test=False, **kwargs):
     _user_list = list(set(
         u for i in kwargs["apps"] if i["app"]["is_post"] for u in i["app"]["user_list"]
     ))
-    myStream.filter(follow=_user_list, is_async=True)
+    myStream.filter(follow=_user_list)
 
 def format_status(status, chat_format="slack"):
     if chat_format == "slack":
@@ -281,43 +279,6 @@ def post_to_rocketchat(post_block):
         **post_block
     )
 
-def post_rocketchat_reactions():
-    # 前日反応のあった投稿をピックアップして再投稿
-    post_base_url = f"{ROCKETCHAT_SERVER_URL}channel/{ROCHETCHAT_CHANNEL}?msg="
-    now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S")
-
-    rocket = RocketChat(
-        ROCKETCHAT_ACCOUNT_NAME,
-        ROCKETCHAT_PASSWORD,
-        server_url=ROCKETCHAT_SERVER_URL)
-    match_post = []
-    # スタンプ等のリアクションがあった投稿
-    match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
-                                                      count=200,
-                                                      oldest=yesterday, latest=now).json()["messages"]
-                   if i.get("reactions")]
-    # 「attachmentsを使うのは自動投稿くらいだろう」という仮定からのフィルタリングした投稿
-    match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
-                                                      count=200,
-                                                      oldest=yesterday, latest=now).json()["messages"]
-                   if i.get("attachments") is None and i.get("t") is None]
-    # ユニークな投稿のidを取得
-    match_post_id = list(set([i.get(["_id"]) for i in match_post]))
-    if match_post:
-        text = "反応のあった投稿一覧\n"
-        text += "\n".join([f"{post_base_url}{i}" for i in match_post_id])
-    else:
-        text = "反応があった投稿はありませんでした"
-    channel = ROCHETCHAT_CHANNEL
-    post_block = {
-        "channel": channel,
-        "text": text,
-    }
-    rocket.chat_post_message(
-        **post_block
-    )
-
 def load_config(config_path: str) -> AttrDict:
     """config(yaml)ファイルを読み込む
 
@@ -337,10 +298,6 @@ def load_config(config_path: str) -> AttrDict:
 def main():
     config = load_config("./user_list.yaml")
     initialize(**config)
-    schedule.every().day.at("16:00").do(post_rocketchat_reactions)
-    while True:
-        schedule.run_pending()
-        sleep(1)
 
 if __name__ == "__main__":
     main()
