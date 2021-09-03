@@ -24,12 +24,12 @@ def post_rocketchat_reactions():
     match_post = []
     # スタンプ等のリアクションがあった投稿
     match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
-                                                      count=200,
+                                                      count=500,
                                                       oldest=yesterday, latest=now).json()["messages"]
                    if i.get("reactions")]
     # 「attachmentsを使うのは自動投稿くらいだろう」という仮定からのフィルタリングした投稿
     match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
-                                                      count=200,
+                                                      count=500,
                                                       oldest=yesterday, latest=now).json()["messages"]
                    if i.get("attachments") is None and i.get("t") is None]
     # ユニークな投稿のidを取得
