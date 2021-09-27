@@ -120,7 +120,7 @@ def format_status(status, chat_format="slack"):
     elif chat_format == "rocketchat":
         attachments = make_attachments_rocketchat(status)
         # RocketChatではattachmentの文字列が検索に引っかからないため、本文にも文字列を埋め込む
-        text += f'\n{attachments[0]["text"]}'
+        text += f'\n{attachments[0]["text"]}'.replace("</br>", "\n")
 
     post_block = {
         "channel": channel,
