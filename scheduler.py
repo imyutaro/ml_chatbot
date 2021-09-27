@@ -9,11 +9,12 @@ SLACK_CHANNEL = "#curation"
 ROCKETCHAT_ACCOUNT_NAME = os.environ["ROCKETCHAT_USER"]
 ROCKETCHAT_PASSWORD = os.environ["ROCKETCHAT_PASSWORD"]
 ROCKETCHAT_SERVER_URL = os.environ["ROCKETCHAT_SERVER_URL"]
-ROCHETCHAT_CHANNEL = "curation_bot"
+ROCKETCHAT_CHANNEL = "curation_bot"
+ROCKETCHAT_DISCUSSION_CHANNEL = "discussion_curation_bot"
 
 def post_rocketchat_reactions():
     # 前日反応のあった投稿をピックアップして再投稿
-    post_base_url = f"{ROCKETCHAT_SERVER_URL}channel/{ROCHETCHAT_CHANNEL}?msg="
+    post_base_url = f"{ROCKETCHAT_SERVER_URL}channel/{ROCKETCHAT_CHANNEL}?msg="
     now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     yesterday = (datetime.now() - timedelta(days=1) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -39,11 +40,17 @@ def post_rocketchat_reactions():
         text += "\n".join([f"{post_base_url}{i}" for i in match_post_id])
     else:
         text = "反応があった投稿はありませんでした"
-    channel = ROCHETCHAT_CHANNEL
+    channel = ROCKETCHAT_CHANNEL
     post_block = {
         "channel": channel,
         "text": text,
     }
+    # 元Rocket.chatのチャンネルへ再投稿
+    rocket.chat_post_message(
+        **post_block
+    )
+    # ディスカッションチャンネルへ投稿
+    post_block.update({"channel": ROCKETCHAT_DISCUSSION_CHANNEL})
     rocket.chat_post_message(
         **post_block
     )
