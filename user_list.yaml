@@ -11,6 +11,7 @@ apps:
         - CyberAgent_PR
         - DL_Hacks
         - DeepMind
+        - Facebookai__
         - GoogleAI
         - ISID_AI_team
         - JuliaLanguage
@@ -26,7 +27,6 @@ apps:
         - ZOZOIncPR
         - ai_scholar
         - arxivtimes
-        - facebookai
         - geoffreyhinton
         - hillbig
         - math_phys
@@ -42,6 +42,7 @@ apps:
         - AkiraTOSEI
         - DL_Hacks
         - DeepMind
+        - Facebookai__
         - GoogleAI
         - ISID_AI_team
         - JuliaLanguage
@@ -54,7 +55,6 @@ apps:
         - TensorFlow
         - ai_scholar
         - arxivtimes
-        - facebookai
         - geoffreyhinton
         - hillbig
         - math_phys
