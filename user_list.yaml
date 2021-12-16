@@ -28,6 +28,7 @@ apps:
         - ai_scholar
         - arxivtimes
         - geoffreyhinton
+        - hadleywickham
         - hillbig
         - math_phys
         - stateofai_ja
@@ -56,6 +57,7 @@ apps:
         - ai_scholar
         - arxivtimes
         - geoffreyhinton
+        - hadleywickham
         - hillbig
         - math_phys
         - stateofai_ja
