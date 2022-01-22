@@ -10,6 +10,7 @@ from rocketchat_API.rocketchat import RocketChat
 import tweepy
 import yaml
 
+TWITTER_BEARER_TOKEN = os.environ["BEARER_TOKEN"]
 TWITTER_CONSUMER_KEY = os.environ["CONSUMER_KEY"]
 TWITTER_CONSUMER_SECRET = os.environ["CONSUMER_SECRET"]
 TWITTER_ACCESS_TOKEN = os.environ["ACCESS_TOKEN_KEY"]
@@ -80,9 +81,13 @@ class MyStreamListener(tweepy.StreamListener):
             return False
 
 def initialize(print_test=False, **kwargs):
-    auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
-    auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET)
-    api = tweepy.API(auth)
+    api = tweepy.Client(
+            bearer_token=TWITTER_BEARER_TOKEN,
+            consumer_key=TWITTER_CONSUMER_KEY,
+            consumer_secret=TWITTER_CONSUMER_SECRET,
+            access_token=TWITTER_ACCESS_TOKEN,
+            access_token_secret=TWITTER_ACCESS_TOKEN_SECRET,
+        )
 
     kwargs["apps"] = [i for i in kwargs["apps"] if i["app"]["is_post"]]
     for num, i in enumerate(kwargs["apps"]):
