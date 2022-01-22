@@ -38,7 +38,7 @@ apps:
         - ylecun
   - app:
       name: slack
-      is_post: True
+      is_post: False
       user_list:
         - AkiraTOSEI
         - DL_Hacks
