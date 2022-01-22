@@ -19,7 +19,7 @@ SLACK_CHANNEL = "#curation"
 ROCKETCHAT_ACCOUNT_NAME = os.environ["ROCKETCHAT_USER"]
 ROCKETCHAT_PASSWORD = os.environ["ROCKETCHAT_PASSWORD"]
 ROCKETCHAT_SERVER_URL = os.environ["ROCKETCHAT_SERVER_URL"]
-ROCKETCHAT_CHANNEL = "curation_bot"
+ROCKETCHAT_CHANNEL = "tmp_test_curation_bot"
 
 # tweepy.StreamListener をオーバーライド
 class MyStreamListener(tweepy.StreamListener):
