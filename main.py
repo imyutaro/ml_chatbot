@@ -274,8 +274,8 @@ def post_to_slack(post_block):
 def post_to_rocketchat(post_block):
     # 私はaliasが使えない(権限の問題?)
     rocket = RocketChat(
-        ROCKETCHAT_ACCOUNT_NAME,
-        ROCKETCHAT_PASSWORD,
+        user_id=ROCKETCHAT_ACCOUNT_NAME,
+        password=ROCKETCHAT_PASSWORD,
         server_url=ROCKETCHAT_SERVER_URL)
     rocket.chat_post_message(
         **post_block
