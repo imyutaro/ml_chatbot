@@ -23,9 +23,22 @@ ROCKETCHAT_SERVER_URL = os.environ["ROCKETCHAT_SERVER_URL"]
 ROCKETCHAT_CHANNEL = "tmp_test_curation_bot"
 
 # tweepy.StreamListener をオーバーライド
-class MyStreamListener(tweepy.StreamListener):
-    def __init__(self, print_test=False, **kwargs):
-        super().__init__()
+class MyStreamListener(tweepy.Stream):
+    def __init__(
+            self,
+            consumer_key,
+            consumer_secret,
+            access_token,
+            access_token_secret,
+            print_test=False,
+            **kwargs
+        ):
+        super().__init__(
+            consumer_key=consumer_key,
+            consumer_secret=consumer_secret,
+            access_token=access_token,
+            access_token_secret=access_token_secret,
+        )
         self._print_test = print_test
         self._apps = list(kwargs["apps"])
 
@@ -92,13 +105,19 @@ def initialize(print_test=False, **kwargs):
     kwargs["apps"] = [i for i in kwargs["apps"] if i["app"]["is_post"]]
     for num, i in enumerate(kwargs["apps"]):
         kwargs["apps"][num]["app"]["user_list"] = [
-            str(api.get_user(ul).id) for ul in kwargs["apps"][num]["app"]["user_list"]
+            str(api.get_user(username=ul).data.id) for ul in kwargs["apps"][num]["app"]["user_list"]
         ]
-    startStream(api.auth, print_test=print_test, **kwargs)
+    startStream(print_test=print_test, **kwargs)
 
-def startStream(auth, print_test=False, **kwargs):
-    myStreamListener = MyStreamListener(print_test=print_test, **kwargs)
-    myStream = tweepy.Stream(auth=auth, listener=myStreamListener)
+def startStream(print_test=False, **kwargs):
+    myStream = MyStreamListener(
+            consumer_key=TWITTER_CONSUMER_KEY,
+            consumer_secret=TWITTER_CONSUMER_SECRET,
+            access_token=TWITTER_ACCESS_TOKEN,
+            access_token_secret=TWITTER_ACCESS_TOKEN_SECRET,
+            print_test=print_test,
+            **kwargs
+            )
     # myStream.userstream() #タイムラインを表示
     # myStream.filter(track=["#パラリンピック"]) #検索がしたい場合
     # 必要なユニークユーザーに集約
