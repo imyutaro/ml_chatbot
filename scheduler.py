@@ -4,8 +4,8 @@ import os
 
 from rocketchat_API.rocketchat import RocketChat
 
-SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
-SLACK_CHANNEL = "#curation"
+# SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
+# SLACK_CHANNEL = "#curation"
 ROCKETCHAT_ACCOUNT_NAME = os.environ["ROCKETCHAT_USER"]
 ROCKETCHAT_PASSWORD = os.environ["ROCKETCHAT_PASSWORD"]
 ROCKETCHAT_SERVER_URL = os.environ["ROCKETCHAT_SERVER_URL"]
@@ -19,8 +19,8 @@ def post_rocketchat_reactions():
     yesterday = (datetime.now() - timedelta(days=1) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%S")
 
     rocket = RocketChat(
-        ROCKETCHAT_ACCOUNT_NAME,
-        ROCKETCHAT_PASSWORD,
+        user_id=ROCKETCHAT_ACCOUNT_NAME,
+        auth_token=ROCKETCHAT_PASSWORD,
         server_url=ROCKETCHAT_SERVER_URL)
     match_post = []
     # スタンプ等のリアクションがあった投稿
