@@ -125,7 +125,8 @@ def format_status(status, chat_format="slack"):
     post_block = {
         "channel": channel,
         "text": text,
-        "attachments": attachments
+        "attachments": attachments,
+        "emoji": ":smirk:",
     }
     return post_block
 
@@ -145,7 +146,6 @@ def make_attachments_rocketchat(status):
             "author_name": f"{status.retweeted_status.user.name} tweet",
             "author_link": f"https://twitter.com/{status.retweeted_status.user.screen_name}",
             "color": "#8AC75A",
-            "emoji": ":smirk:",
             "text": text.replace("\n", "</br>"),
             "image_url": media
         }]
