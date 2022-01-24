@@ -36,14 +36,17 @@ def post_rocketchat_reactions():
     # ユニークな投稿のidを取得
     match_post_id = list(set([i["_id"] for i in match_post]))
     if match_post:
+        emoji = ":smile:"
         text = "反応のあった投稿一覧\n"
         text += "\n".join([f"{post_base_url}{i}" for i in match_post_id])
     else:
+        emoji = ":kanashimi:"
         text = "反応があった投稿はありませんでした"
     channel = ROCKETCHAT_CHANNEL
     post_block = {
         "channel": channel,
         "text": text,
+        "emoji": emoji,
     }
     # 元Rocket.chatのチャンネルへ再投稿
     rocket.chat_post_message(
