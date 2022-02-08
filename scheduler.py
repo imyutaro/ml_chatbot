@@ -37,7 +37,7 @@ def post_rocketchat_reactions():
     match_post_id = list(set([i["_id"] for i in match_post]))
     if match_post:
         emoji = ":smile:"
-        text = "反応のあった投稿一覧\n"
+        text = f"反応のあった投稿一覧↓  #{ROCKETCHAT_DISCUSSION_CHANNEL}もご活用ください〜\n"
         text += "\n".join([f"{post_base_url}{i}" for i in match_post_id])
     else:
         emoji = ":kanashimi:"
