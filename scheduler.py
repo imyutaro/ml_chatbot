@@ -22,23 +22,30 @@ def post_rocketchat_reactions():
         user_id=ROCKETCHAT_ACCOUNT_NAME,
         auth_token=ROCKETCHAT_PASSWORD,
         server_url=ROCKETCHAT_SERVER_URL)
+
     match_post = []
-    # スタンプ等のリアクションがあった投稿
-    match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
+    for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
                                                       count=500,
-                                                      oldest=yesterday, latest=now).json()["messages"]
-                   if i.get("reactions")]
-    # 「attachmentsを使うのは自動投稿くらいだろう」という仮定からのフィルタリングした投稿
-    match_post += [i for i in rocket.channels_history(rocket.channels_info(channel="curation_bot").json()["channel"]["_id"],
-                                                      count=500,
-                                                      oldest=yesterday, latest=now).json()["messages"]
-                   if i.get("attachments") is None and i.get("t") is None]
-    # ユニークな投稿のidを取得
-    match_post_id = list(set([i["_id"] for i in match_post]))
+                                                      oldest=yesterday, latest=now).json()["messages"]:
+        # スタンプ等のリアクションがあった投稿
+        # or
+        # 「attachmentsを使うのは自動投稿くらいだろう」という仮定からattachmentsがついていない投稿全てを所得する処理
+        # （bot以外の投稿を全て取得するための処理）
+        if (i.get("reactions")) or (i.get("attachments") is None and i.get("t") is None):
+            match_post.append(i)
+    match_post = sorted(match_post, key=lambda x: x["ts"])
+
     if match_post:
         emoji = ":smile:"
         text = f"反応のあった投稿一覧↓  #{ROCKETCHAT_DISCUSSION_CHANNEL}もご活用ください〜\n"
-        text += "\n".join([f"{post_base_url}{i}" for i in match_post_id])
+        for i in match_post:
+            exist_reaction = i.get("reactions")
+            if exist_reaction:
+                # reactionの絵文字をメッセージの先頭に連結させるための処理
+                reactions = " ".join(exist_reaction.keys())
+            else:
+                reactions = ""
+            text += f"{reactions} {post_base_url}{i['_id']}\n"
     else:
         emoji = ":kanashimi:"
         text = "反応があった投稿はありませんでした"
